@@ -1,3 +1,4 @@
+import { globifyGitIgnoreFile } from 'globify-gitignore';
 import * as path from 'path';
 import { contains } from '.';
 import { GitIgnoreHierarchy, IsIgnoredExResult, loadGitIgnore } from './GitIgnoreFile';
@@ -51,6 +52,21 @@ export class GitIgnore {
         this.resolvedGitIgnoreHierarchies.set(directory, found);
         return find;
     }
+
+    async getGlobs(root: string) {
+        const globEntries = await globifyGitIgnoreFile(root, false);
+        const ignored: string[] = [];
+        const included: string[] = [];
+        for (const globEntry of globEntries) {
+            if (!globEntry.included) {
+                ignored.push(globEntry.glob);
+            } else {
+                included.push(globEntry.glob);
+            }
+        }
+        return [ignored, included];
+    }
+
     filterOutIgnored(files: string[]): Promise<string[]>;
     filterOutIgnored(files: Iterable<string>): Promise<string[]>;
     filterOutIgnored(files: AsyncIterable<string>): AsyncIterable<string>;
